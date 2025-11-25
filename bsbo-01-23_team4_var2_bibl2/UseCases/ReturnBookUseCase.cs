@@ -2,21 +2,16 @@ using bsbo_01_23_team4_var2_bibl2.Repository;
 
 namespace bsbo_01_23_team4_var2_bibl2.UseCases;
 
-public class ReturnBookUseCase
+public class ReturnBookUseCase : BaseUseCase
 {
-    private readonly ILibraryRepository _repository;
+    public ReturnBookUseCase(ILibraryRepository repo) : base(repo) {}
 
-    public ReturnBookUseCase(ILibraryRepository repository)
-    {
-        _repository = repository;
-    }
-
-    public void Execute()
+    public override void Execute()
     {
         Console.Write("Введите ID книги: ");
         if (!int.TryParse(Console.ReadLine(), out int bookId)) return;
 
-        var loan = _repository.GetActiveLoanByBookId(bookId);
+        var loan = repository.GetActiveLoanByBookId(bookId);
         if (loan == null)
         {
             Console.WriteLine("Эта книга не числится выданной.");
@@ -24,13 +19,13 @@ public class ReturnBookUseCase
         }
 
         loan.MarkAsReturned();
-        _repository.UpdateLoan(loan);
+        repository.UpdateLoan(loan);
 
-        var book = _repository.GetBookById(bookId);
+        var book = repository.GetBookById(bookId);
         if (book != null)
         {
             book.MarkAsReturned();
-            _repository.UpdateBook(book);
+            repository.UpdateBook(book);
         }
 
         Console.WriteLine("Книга успешно возвращена.");

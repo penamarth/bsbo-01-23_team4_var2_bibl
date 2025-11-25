@@ -2,21 +2,16 @@ using bsbo_01_23_team4_var2_bibl2.Repository;
 
 namespace bsbo_01_23_team4_var2_bibl2.UseCases;
 
-public class WriteOffBookUseCase
+public class WriteOffBookUseCase : BaseUseCase
 {
-    private readonly ILibraryRepository _repository;
 
-    public WriteOffBookUseCase(ILibraryRepository repository)
-    {
-        _repository = repository;
-    }
-
-    public void Execute()
+    public WriteOffBookUseCase(ILibraryRepository repo) : base(repo) {}
+    public override void Execute()
     {
         Console.Write("Введите ID книги для списания: ");
         if (!int.TryParse(Console.ReadLine(), out int id)) return;
 
-        var book = _repository.GetBookById(id);
+        var book = repository.GetBookById(id);
         if (book == null)
         {
             Console.WriteLine("Книга не найдена.");
@@ -29,7 +24,7 @@ public class WriteOffBookUseCase
             return;
         }
 
-        _repository.RemoveBook(book);
+        repository.RemoveBook(book);
         Console.WriteLine($"Книга \"{book.Title}\" Списана из фонда.");
     }
 }
