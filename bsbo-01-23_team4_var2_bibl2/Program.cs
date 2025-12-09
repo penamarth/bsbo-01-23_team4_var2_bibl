@@ -1,55 +1,57 @@
-﻿namespace bsbo_01_23_team4_var2_bibl2;
+﻿using bsbo_01_23_team4_var2_bibl2.Repository;
+using bsbo_01_23_team4_var2_bibl2.Data;
 
-using Repository;
-using UseCases;
-using Data;
+namespace bsbo_01_23_team4_var2_bibl2;
 
 internal class Program
 {
     static void Main(string[] args)
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
-        Console.WriteLine("БИБЛИОТЕКА\n");
+        Console.WriteLine("=== ИНФОРМАЦИОННАЯ СИСТЕМА БИБЛИОТЕКИ ===\n");
 
-        ILibraryRepository repository = InMemoryLibraryRepository.Instance;
+        var library = new Library.Library(
+            InMemoryBookRepository.Instance,
+            InMemoryReaderRepository.Instance,
+            InMemoryLoanRepository.Instance
+        );
 
-        TestDataSeeder.Seed(repository);
+        TestDataSeeder.Seed(library);
 
         while (true)
         {
-            Console.WriteLine("\n1 - Выдать книгу");
+            Console.WriteLine("\nМеню:");
+            Console.WriteLine("1 - Выдать книгу");
             Console.WriteLine("2 - Вернуть книгу");
-            Console.WriteLine("3 - Добавить книгу");
+            Console.WriteLine("3 - Добавить книгу в ячейку");
             Console.WriteLine("4 - Списать книгу");
-            Console.WriteLine("5 - Показать все книги");
-            Console.WriteLine("6 - Показать всех читателей");
-            Console.WriteLine("0 - Выход из программы");
+            Console.WriteLine("5 - Показать каталог");
+            Console.WriteLine("6 - Показать читателей");
+            Console.WriteLine("0 - Выход");
             Console.Write("Выберите: ");
 
-            string? choice = Console.ReadLine();
-
-            switch (choice)
+            switch (Console.ReadLine())
             {
                 case "1":
-                    new BorrowBookUseCase(repository).Execute();
+                    IssueBook(library);
                     break;
                 case "2":
-                    new ReturnBookUseCase(repository).Execute();
+                    ReturnBook(library);
                     break;
                 case "3":
-                    new AddBookUseCase(repository).Execute();
+                    AddBook(library);
                     break;
                 case "4":
-                    new WriteOffBookUseCase(repository).Execute();
+                    WriteOffBook(library);
                     break;
                 case "5":
-                    PrintAllBooks(repository);
+                    library.PrintCatalog();
                     break;
                 case "6":
-                    PrintAllReaders(repository);
+                    library.PrintReaders();
                     break;
                 case "0":
-                    Console.WriteLine("Пока-пока!");
+                    Console.WriteLine("До свидания!");
                     return;
                 default:
                     Console.WriteLine("Неверный выбор.");
@@ -58,21 +60,73 @@ internal class Program
         }
     }
 
-    static void PrintAllBooks(ILibraryRepository repository)
+    private static void IssueBook(Library.Library library)
     {
-        Console.WriteLine("\nКаталог книг:");
-        foreach (var book in repository.GetAllBooks())
+        Console.Write("Введите ID книги: ");
+        if (!int.TryParse(Console.ReadLine(), out var bookId)) return;
+
+        Console.Write("Введите ID читателя: ");
+        if (!int.TryParse(Console.ReadLine(), out var readerId)) return;
+
+        try
         {
-            Console.WriteLine($"[{book.Id}] {book.Title} — {book.Author} | {(book.IsAvailable ? "Доступна" : "Выдана")}");
+            library.IssueBook(bookId, readerId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Ошибка: " + ex.Message);
         }
     }
 
-    static void PrintAllReaders(ILibraryRepository repository)
+    private static void ReturnBook(Library.Library library)
     {
-        Console.WriteLine("\nЧитатели в системе:");
-        foreach (var reader in repository.GetAllReaders())
+        Console.Write("Введите ID книги: ");
+        if (!int.TryParse(Console.ReadLine(), out var bookId)) return;
+
+        try
         {
-            Console.WriteLine($"[{reader.Id}] - {reader.Name}");
+            library.ReturnBook(bookId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Ошибка: " + ex.Message);
+        }
+    }
+
+    private static void AddBook(Library.Library library)
+    {
+        Console.Write("Введите ID ячейки: ");
+        if (!int.TryParse(Console.ReadLine(), out var cellId)) return;
+
+        Console.Write("Введите название книги: ");
+        var title = Console.ReadLine();
+
+        Console.Write("Введите автора книги: ");
+        var author = Console.ReadLine();
+
+        try
+        {
+            library.AddBookToCell(cellId, title ?? "Без названия", author ?? "Неизвестен");
+            Console.WriteLine("Книга успешно добавлена.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Ошибка: " + ex.Message);
+        }
+    }
+
+    private static void WriteOffBook(Library.Library library)
+    {
+        Console.Write("Введите ID книги: ");
+        if (!int.TryParse(Console.ReadLine(), out var bookId)) return;
+
+        try
+        {
+            library.WriteOffBook(bookId);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Ошибка: " + ex.Message);
         }
     }
 }
